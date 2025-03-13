@@ -8,50 +8,105 @@ import { processRecipeFromInstagram } from "@/services/recipeService";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { FileText, Mic, Brain, Image } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [currentStep, setCurrentStep] = useState<number>(-1);
 
   const features = [
     {
       icon: <FileText className="w-8 h-8 text-white mb-3" />,
       title: "Extract Description",
-      description: "Captures recipe details from post captions"
+      description: "Extracts ingredients and steps from the post caption"
     },
     {
       icon: <Mic className="w-8 h-8 text-white mb-3" />,
-      title: "Video Transcription",
-      description: "Converts video instructions into text"
+      title: (
+        <span className="flex items-center gap-2 justify-center">
+          Speech to Text
+        </span>
+      ),
+      description: (
+        <div className="space-y-2">
+          <p className="text-sm text-gray-300">Transcribes video audio into text</p>
+          <img 
+            src="/whisper-icon.svg" 
+            alt="OpenAI Whisper" 
+            className="h-6 mx-auto opacity-90"
+          />
+        </div>
+      )
     },
     {
       icon: <Brain className="w-8 h-8 text-white mb-3" />,
-      title: "AI Processing",
-      description: "Synthesizes information into recipe format"
+      title: (
+        <span className="flex items-center gap-2 justify-center">
+          AI Processing
+        </span>
+      ),
+      description: (
+        <div className="space-y-2">
+          <p className="text-sm text-gray-300">Structures recipe into clear format</p>
+          <img 
+            src="/mistral-icon.svg" 
+            alt="Mistral AI" 
+            className="h-6 mx-auto opacity-90"
+          />
+        </div>
+      )
     },
     {
       icon: <Image className="w-8 h-8 text-white mb-3" />,
-      title: "Generate Illustration",
-      description: "Creates visual representation of the dish"
+      title: (
+        <span className="flex items-center gap-2 justify-center">
+          Image Generation
+        </span>
+      ),
+      description: (
+        <div className="space-y-2">
+          <p className="text-sm text-gray-300">Creates appetizing dish preview</p>
+          <img 
+            src="/dall-e-icon.svg" 
+            alt="DALL·E" 
+            className="h-6 mx-auto opacity-90"
+          />
+        </div>
+      )
     }
   ];
 
   const handleSubmit = async (url: string) => {
     setIsLoading(true);
+    setRecipe(null);
+    setCurrentStep(0); // Start with first step
+
     try {
-      // Fetch Instagram post data
+      // Step 1: Extract Description
       const postData = await fetchInstagramPost(url);
-      
       if (!postData) {
         toast.error("Failed to process the Instagram content");
-        setIsLoading(false);
         return;
       }
-      
-      console.log("Post data is: ", postData);
-      // Process the caption into a recipe
-      const generatedRecipe = await processRecipeFromInstagram(postData["caption"], postData["transcription"], postData["thumbnailUrl"]);
-      
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for animation
+      setCurrentStep(1); // Move to transcription
+
+      // Step 2: Transcription processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setCurrentStep(2); // Move to AI processing
+
+      // Step 3: AI Processing
+      const generatedRecipe = await processRecipeFromInstagram(
+        postData["caption"],
+        postData["transcription"],
+        postData["thumbnailUrl"]
+      );
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setCurrentStep(3); // Move to illustration
+
+      // Step 4: Final processing and illustration
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setRecipe(generatedRecipe);
       toast.success("Recipe generated successfully!");
     } catch (error) {
@@ -59,7 +114,19 @@ const Index = () => {
       toast.error("Failed to process the recipe. Please try again.");
     } finally {
       setIsLoading(false);
+      setCurrentStep(-1); // Reset steps
     }
+  };
+
+  const getFeatureStyles = (index: number) => {
+    if (currentStep === -1) return "bg-white/10";
+    if (currentStep === index) {
+      return "bg-white/30 scale-110 shadow-2xl border-white/50 ring-2 ring-white/20";
+    }
+    if (currentStep > index) {
+      return "bg-emerald-500/20 border-emerald-200/30";
+    }
+    return "bg-white/5 opacity-50";
   };
 
   return (
@@ -94,17 +161,45 @@ const Index = () => {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="text-center p-4 rounded-lg bg-white/10 backdrop-blur-sm"
+              className={cn(
+                "text-center p-6 rounded-xl backdrop-blur-sm transition-all duration-700",
+                "border border-white/20",
+                "transform-gpu hover:scale-105",
+                getFeatureStyles(index)
+              )}
             >
-              <div className="flex justify-center">
+              <div 
+                className={cn(
+                  "flex justify-center mb-4 transition-all duration-500",
+                  currentStep === index && "animate-pulse transform-gpu scale-110",
+                  currentStep > index && "text-emerald-400"
+                )}
+              >
                 {feature.icon}
               </div>
-              <h3 className="text-white font-semibold mb-2">
+              <h3 className={cn(
+                "text-white font-semibold mb-2 transition-colors duration-500",
+                currentStep > index && "text-emerald-200"
+              )}>
                 {feature.title}
               </h3>
-              <p className="text-gray-300 text-sm">
+              <p className={cn(
+                "text-gray-300 text-sm transition-colors duration-500",
+                currentStep === index && "text-white",
+                currentStep > index && "text-emerald-100"
+              )}>
                 {feature.description}
               </p>
+              {currentStep === index && (
+                <div className="mt-3 text-xs text-emerald-300 animate-pulse">
+                  Processing...
+                </div>
+              )}
+              {currentStep > index && (
+                <div className="mt-3 text-xs text-emerald-400">
+                  Completed ✓
+                </div>
+              )}
             </div>
           ))}
         </div>

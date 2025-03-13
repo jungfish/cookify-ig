@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { getRecipeById } from '@/services/databaseService';
 import type { Recipe } from '@/types/recipe';
 import { UtensilsCrossed, ListOrdered, ScrollText } from 'lucide-react';
+import ParallaxHero from '@/components/ParallaxHero';
 
 const RecipePage = () => {
   const { id } = useParams<{ id: string }>();
@@ -47,17 +48,10 @@ const RecipePage = () => {
     <div className="min-h-screen bg-[#faf7f2]">
       {/* Hero Section */}
       {recipe.illustration && (
-        <div className="w-full h-[300px] relative overflow-hidden">
-          <img
-            src={recipe.illustration}
-            alt={recipe.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-          <h1 className="absolute bottom-8 left-1/2 -translate-x-1/2 text-4xl font-bold text-white text-center w-full max-w-4xl px-4">
-            {recipe.title}
-          </h1>
-        </div>
+        <ParallaxHero
+          imageUrl={recipe.illustration}
+          title={recipe.title}
+        />
       )}
 
       {/* Main content */}
@@ -65,7 +59,7 @@ const RecipePage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Left column */}
           <div className="col-span-2">
-            <div className="mb-8">
+            <div className="mb-8 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
               <div className="flex items-center gap-2 mb-4">
                 <UtensilsCrossed className="w-6 h-6 text-gray-700" />
                 <h2 className="text-xl font-semibold text-gray-700">Ingredients</h2>
@@ -77,7 +71,7 @@ const RecipePage = () => {
               </ul>
             </div>
 
-            <div className="mb-8">
+            <div className="mb-8 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
               <div className="flex items-center gap-2 mb-4">
                 <ListOrdered className="w-6 h-6 text-gray-700" />
                 <h2 className="text-xl font-semibold text-gray-700">Instructions</h2>
@@ -94,10 +88,10 @@ const RecipePage = () => {
           <div className="col-span-1">
             <div className="sticky top-24 pt-4">
               {recipe.videoUrl && (
-                <div className="aspect-[9/16] w-full max-w-[240px] mx-auto bg-white rounded-lg shadow-md p-2">
+                <div className="aspect-[9/16] w-full max-w-[240px] mx-auto bg-white/70 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
                   <video
                     controls
-                    className="w-full h-full rounded object-cover"
+                    className="w-full h-full rounded-lg"
                     src={recipe.videoUrl}
                     playsInline
                   />
