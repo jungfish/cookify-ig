@@ -21,4 +21,5 @@ model Recipe {
   videoUrl     String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  servings     Int        @default(4)
 }

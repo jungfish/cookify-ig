@@ -75,7 +75,8 @@ export async function getRecipeById(id: string) {
     const parsedRecipe = {
       ...recipe,
       ingredients: parseJSONSafely(recipe.ingredients, []),
-      instructions: parseJSONSafely(recipe.instructions, [])
+      instructions: parseJSONSafely(recipe.instructions, []),
+      servings: Number(recipe.servings) || 4  // Ensure servings is a number
     };
 
     console.log('Parsed recipe:', parsedRecipe);

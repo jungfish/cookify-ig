@@ -15,6 +15,7 @@ export async function interpretRecipe(caption: string, transcription: string): P
   category: "Dessert" | "Soupe" | "Plat principal" | "Entrée" | "Bébé";
   ingredients: string[];
   instructions: string[];
+  servings: number;
 }> {
   const prompt = `
     Analyze this Instagram recipe caption and extract a structured recipe from it.
@@ -25,6 +26,7 @@ export async function interpretRecipe(caption: string, transcription: string): P
     - category: Must be one of ["Dessert", "Soupe", "Plat principal", "Entrée", "Bébé"]
     - ingredients: An array of strings, each containing one ingredient with measurement
     - instructions: An array of strings, each containing one step
+    - servings: Number of people the recipe is for (default to 4 if not specified)
     
     Only return the JSON object, no additional text.
     language: french
@@ -49,7 +51,8 @@ export async function interpretRecipe(caption: string, transcription: string): P
       title: String(parsed.title),
       category: parsed.category,
       ingredients: parsed.ingredients.map(String),
-      instructions: parsed.instructions.map(String)
+      instructions: parsed.instructions.map(String),
+      servings: parsed.servings || 4
     };
   } catch (error) {
     console.error('Error parsing Mistral response:', error);

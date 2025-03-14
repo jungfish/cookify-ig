@@ -7,6 +7,7 @@ export type Recipe = {
   illustration?: string;
   url?: string;
   videoUrl?: string;
+  servings: number;
   createdAt?: Date;
   updatedAt?: Date;
 }; 

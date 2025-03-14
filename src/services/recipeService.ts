@@ -23,7 +23,8 @@ export async function processRecipeFromInstagram(
       instructions: recipe.instructions || [],
       illustration,
       url: thumbnailUrl,
-      videoUrl // Add video URL from Instagram media endpoint
+      videoUrl, // Add video URL from Instagram media endpoint
+      servings: recipe.servings || 4, // Default to 4 servings if not specified
     };
 
     // Save the recipe to the database

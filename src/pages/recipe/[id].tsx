@@ -10,6 +10,7 @@ const RecipePage = () => {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [servingMultiplier, setServingMultiplier] = useState(1);
 
   useEffect(() => {
     async function fetchRecipe() {
@@ -23,7 +24,8 @@ const RecipePage = () => {
         
         try {
           const data = JSON.parse(text);
-          console.log('Parsed data:', data);
+          console.log('Recipe data:', data);
+          console.log('Servings value:', data.servings);
           setRecipe(data);
         } catch (parseError) {
           console.error('Parse error:', parseError);
@@ -39,6 +41,26 @@ const RecipePage = () => {
 
     fetchRecipe();
   }, [id]);
+
+  // Function to adjust ingredient quantities
+  const adjustIngredient = (ingredient: string, multiplier: number) => {
+    const regex = /^(\d+(?:[,.]\d+)?)\s*(.+)$/;
+    const match = ingredient.match(regex);
+    
+    if (match) {
+      const [_, quantity, rest] = match;
+      const adjustedQuantity = parseFloat(quantity.replace(',', '.')) * multiplier;
+      return `${adjustedQuantity.toFixed(1).replace('.0', '')} ${rest}`;
+    }
+    return ingredient;
+  };
+
+  // Add this function to safely get servings
+  const getServings = () => {
+    if (!recipe) return 4;
+    const servings = Number(recipe.servings);
+    return isNaN(servings) ? 4 : servings;
+  };
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
@@ -59,6 +81,29 @@ const RecipePage = () => {
         <div className="grid grid-cols-3 gap-6">
           {/* Left column */}
           <div className="col-span-2">
+            {/* Serving size adjuster */}
+            <div className="mb-4 p-4 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
+              <div className="flex items-center gap-4">
+                <span className="text-gray-700">Nombre de personnes:</span>
+                <button 
+                  className="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300"
+                  onClick={() => setServingMultiplier(prev => Math.max(0.5, prev - 0.5))}
+                >
+                  -
+                </button>
+                <span className="w-12 text-center">
+                  {Math.round(getServings() * servingMultiplier)}
+                </span>
+                <button 
+                  className="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300"
+                  onClick={() => setServingMultiplier(prev => prev + 0.5)}
+                >
+                  +
+                </button>
+              </div>
+            </div>
+
+            {/* Ingredients section with adjusted quantities */}
             <div className="mb-8 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
               <div className="flex items-center gap-2 mb-4">
                 <UtensilsCrossed className="w-6 h-6 text-gray-700" />
@@ -66,7 +111,9 @@ const RecipePage = () => {
               </div>
               <ul className="list-disc pl-5 space-y-2 text-gray-600">
                 {recipe.ingredients.map((ingredient, index) => (
-                  <li key={index}>{ingredient}</li>
+                  <li key={index}>
+                    {adjustIngredient(ingredient, servingMultiplier)}
+                  </li>
                 ))}
               </ul>
             </div>
