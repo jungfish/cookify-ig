@@ -60,21 +60,18 @@ export async function interpretRecipe(caption: string, transcription: string): P
 // Add new function for image generation
 export async function generateRecipeImage(title: string, ingredients: string[]): Promise<string> {
   try {
-    const prompt = `A minimalistic abstract watercolor drawing of ${title},  The composition is soft and warm, inspired by recipe book illustrations. The dish is depicted in a delicate, airy watercolor style with gentle brushstrokes. The main ingredients are the following:  ${ingredients.slice(0, 3).join(', ')}. They are arranged artistically in a bowl or a plate, with steam subtly rising. The color palette is earthy and inviting, featuring golden tones, deep greens for vegetables and herbs, and soft browns. The background is light and textured, enhancing the organic feel. Soft natural lighting creates depth while keeping the overall aesthetic clean and modern. No text included.`;
-    
+    const prompt = `A minimalistic abstract watercolor drawing of ${title}, The composition is soft and warm, inspired by recipe book illustrations. The dish is depicted in a delicate, airy watercolor style with gentle brushstrokes. The main ingredients are the following: ${ingredients.slice(0,8).join(', ')}. They are arranged artistically in a bowl or a plate, with steam subtly rising. The color palette is earthy and inviting, featuring golden tones, deep greens for vegetables and herbs, and soft browns. The background is light and textured, enhancing the organic feel. Soft natural lighting creates depth while keeping the overall aesthetic clean and modern. No text included. Composition should be wide and horizontal to fit as a banner image.`;
     
     console.log("Prompt is: ", prompt);
-
-
 
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt: prompt,
       n: 1,
-      size: "1024x1024",
-      quality: "standard",
-      style: "natural"
+      size: "1024x1024",  // Changed to wider aspect ratio
+      quality: "hd"
     });
+
 
     console.log('Generated image URL:', response.data[0].url);
     return response.data[0].url;
