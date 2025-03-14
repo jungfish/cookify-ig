@@ -6,7 +6,8 @@ export async function processRecipeFromInstagram(
   caption: string, 
   transcription: string, 
   thumbnailUrl?: string, 
-  videoUrl?: string
+  videoUrl?: string,
+  postUrl?: string
 ): Promise<Recipe> {
   try {
     // Get recipe interpretation from Mistral
@@ -22,10 +23,12 @@ export async function processRecipeFromInstagram(
       ingredients: recipe.ingredients || [],
       instructions: recipe.instructions || [],
       illustration,
-      url: thumbnailUrl,
+      url: postUrl,
       videoUrl, // Add video URL from Instagram media endpoint
       servings: recipe.servings || 4, // Default to 4 servings if not specified
     };
+
+    console.log("PROCESSED RECIPE IS: ", processedRecipe);
 
     // Save the recipe to the database
     const savedRecipe = await saveRecipe(processedRecipe);

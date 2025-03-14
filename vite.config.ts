@@ -249,11 +249,6 @@ export default defineConfig(({ mode }) => ({
             }
           }
 
-          console.log('Checking OpenAI API key:', {
-            keyExists: !!process.env.OPENAI_API_KEY,
-            keyLength: process.env.OPENAI_API_KEY?.length
-          });
-
           res.setHeader('Content-Type', 'application/json');
           res.end(JSON.stringify({
             ...data,
@@ -503,8 +498,6 @@ export default defineConfig(({ mode }) => ({
             // Assuming the audio URL is available in the response data
             const audioUrl = link;
             const videoUrl=data.links[1].link;
-            console.log('WE HAVE AUDIO URL', audioUrl);
-            console.log('WE HAVE VIDEO URL', videoUrl);
             let transcription = ''; // Add this line at the start of the try block
 
             // If there's an audio URL, handle transcription with retry logic
@@ -569,11 +562,6 @@ export default defineConfig(({ mode }) => ({
                 console.error('OpenAI API key is not configured');
               }
             }
-
-            console.log('Checking OpenAI API key:', {
-              keyExists: !!process.env.OPENAI_API_KEY,
-              keyLength: process.env.OPENAI_API_KEY?.length
-            });
 
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({

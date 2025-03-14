@@ -97,10 +97,13 @@ const Index = () => {
       setCurrentStep(2); // Move to AI processing
 
       // Step 3: AI Processing
+      console.log("POST DATA IS: ", postData);
       const generatedRecipe = await processRecipeFromInstagram(
         postData["caption"],
         postData["transcription"],
-        postData["thumbnailUrl"]
+        postData["thumbnailUrl"],
+        postData["videoUrl"],
+        postData["postUrl"]
       );
       await new Promise(resolve => setTimeout(resolve, 1000));
       setCurrentStep(3); // Move to illustration

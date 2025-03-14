@@ -7,6 +7,7 @@ export interface InstagramMedia {
   videoUrl?: string;
   audioUrl?: string;
   thumbnailUrl?: string;
+  postUrl?: string;
 }
 
 async function getIGMediaFromURL(url: string): Promise<JSON> {
@@ -44,16 +45,20 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
 
 
     console.log("VIDEO DATA IS: ", videoData);
-    
-    return {
+    const mediaData = {
       id: media["media_id"],
       caption: media["title"],
       transcription: videoData["transcription"],
       videoUrl: videoData.links[1].link,
       audioUrl: videoData.links[0].link,
       thumbnailUrl: media["thumbnail_url"],
-      
+      postUrl: url,
     };
+    
+
+    console.log("MEDIA DATA IS: ", mediaData);
+    return mediaData;
+    
   } catch (error) {
     console.error("Error fetching Instagram post:", error);
     toast.error("Failed to fetch Instagram content");

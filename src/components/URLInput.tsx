@@ -26,20 +26,18 @@ const URLInput = ({ onSubmit, isLoading }: URLInputProps) => {
       // First get the media info
       const mediaResponse = await fetch(`/api/instagram/media?url=${encodeURIComponent(url)}`);
       const mediaData = await mediaResponse.json();
-      console.log('Media data with video:', mediaData);
-
       // Get the video URL from the response
       const { videoUrl, transcription } = mediaData;
-      console.log('Extracted video URL:', videoUrl);
+  
 
       // Then process the recipe with the video URL
       const recipe = await processRecipeFromInstagram(
         mediaData.caption || '',
         transcription || '',
         mediaData.thumbnail_url,
-        videoUrl
+        videoUrl,
+        mediaData.src_url
       );
-      console.log('Saved recipe with video:', recipe);
       
       // Navigate to the recipe page
       window.location.href = `/recipe/${recipe.id}`;
