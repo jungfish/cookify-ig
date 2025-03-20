@@ -39,12 +39,8 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
   try {
     // Get media from our backend API
     const media = await getIGMediaFromURL(url)
-
-    console.log("MediaID: ", media["media_id"]);
     const videoData = await getVideoFromURL(url);
 
-
-    console.log("VIDEO DATA IS: ", videoData);
     const mediaData = {
       id: media["media_id"],
       caption: media["title"],
@@ -55,10 +51,8 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
       postUrl: url,
     };
     
-
-    console.log("MEDIA DATA IS: ", mediaData);
     return mediaData;
-    
+
   } catch (error) {
     console.error("Error fetching Instagram post:", error);
     toast.error("Failed to fetch Instagram content");

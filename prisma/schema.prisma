@@ -19,7 +19,10 @@ model Recipe {
   illustration String?
   url          String? @unique
   videoUrl     String?
+  prepTime     String?
+  cookTime     String?
+  totalTime    String?
+  servings     Int     @default(4)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  servings     Int        @default(4)
 }

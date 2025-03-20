@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { processRecipeFromInstagram } from "@/services/recipeService";
+import { fetchInstagramPost } from "@/services/instagramService";
 
 interface URLInputProps {
   onSubmit: (url: string) => void;
@@ -24,19 +25,20 @@ const URLInput = ({ onSubmit, isLoading }: URLInputProps) => {
       }
       
       // First get the media info
-      const mediaResponse = await fetch(`/api/instagram/media?url=${encodeURIComponent(url)}`);
-      const mediaData = await mediaResponse.json();
+      const mediaData = await fetchInstagramPost(url);
       // Get the video URL from the response
       const { videoUrl, transcription } = mediaData;
-  
+      console.log("MEDIA DATA IS: ", mediaData);
+      debugger
+
 
       // Then process the recipe with the video URL
       const recipe = await processRecipeFromInstagram(
         mediaData.caption || '',
         transcription || '',
-        mediaData.thumbnail_url,
+        mediaData.thumbnailUrl,
         videoUrl,
-        mediaData.src_url
+        mediaData.postUrl
       );
       
       // Navigate to the recipe page

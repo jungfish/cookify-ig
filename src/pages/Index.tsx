@@ -91,13 +91,14 @@ const Index = () => {
       }
       await new Promise(resolve => setTimeout(resolve, 1000)); // Delay for animation
       setCurrentStep(1); // Move to transcription
-
+      debugger
       // Step 2: Transcription processing
       await new Promise(resolve => setTimeout(resolve, 1500));
       setCurrentStep(2); // Move to AI processing
 
       // Step 3: AI Processing
       console.log("POST DATA IS: ", postData);
+      debugger;
       const generatedRecipe = await processRecipeFromInstagram(
         postData["caption"],
         postData["transcription"],
@@ -127,7 +128,7 @@ const Index = () => {
       return "bg-white/30 scale-110 shadow-2xl border-white/50 ring-2 ring-white/20";
     }
     if (currentStep > index) {
-      return "bg-emerald-500/20 border-emerald-200/30";
+      return "bg-red-500/20 border-emerald-200/30";
     }
     return "bg-white/5 opacity-50";
   };
