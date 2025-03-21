@@ -121,152 +121,7 @@ export default defineConfig(({ mode }) => ({
             res.end(JSON.stringify({ error: 'Failed to fetch recipes' }));
           }
         }
-      },
-      '/api/instagram/oembed': async (req, res) => {
-        const url = new URL(req.url!, `http://${req.headers.host}`);
-        const instagramUrl = url.searchParams.get('url');
-        console.log('\n=== Instagram API Request 1 ===');
-        console.log('URL:', instagramUrl);
-        if (!instagramUrl) {
-          res.statusCode = 400;
-          res.end(JSON.stringify({ error: 'URL parameter is required' }));
-          return;
-        }
-        try {
-          const shortcode = instagramUrl.split('/p/')[1]?.split('/')[0];
-          console.log('Extracted shortcode:', shortcode);
-          // Use the public oEmbed endpoint
-          const apiUrl = `https://i.instagram.com/api/v1/oembed/?url=${encodeURIComponent(instagramUrl)}`;
-          const response = await fetch(apiUrl, {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
-          });
-          console.log('Response status:', response.status, "");
-          const data = await response.json();
-          console.log('Response data:', data);
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({
-            ...data          
-          }));
-        } catch (error) {
-          console.error('Error:', error);
-          res.statusCode = 500;
-          res.end(JSON.stringify({
-            error: error instanceof Error ? error.message : 'Failed to fetch from Instagram',
-            details: error instanceof Error ? error.stack : undefined
-          }));
-        }
-      },
-      // TO DO ERASE THIS ENDPOINT
-      /*
-      '/api/instagram/media': async (req, res) => {
-        const url = new URL(req.url!, `http://${req.headers.host}`);
-        console.log("DO WE GET HERE? ", url);
-
-        try {
-          // Use the public oEmbed endpoint
-          const apiUrl = `https://social-media-video-downloader.p.rapidapi.com/smvd/get/all?url=${encodeURIComponent(url.searchParams.get('url'))}&filename=download`;
-          // console.log("API URL:", apiUrl)
-          const response = await fetch(apiUrl, {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-              'X-RapidAPI-Key': '824dddee65msh76dbe040b14bfe4p12ab6ajsnc6532155d4f8',
-              'X-RapidAPI-Host': 'social-media-video-downloader.p.rapidapi.com'
-            }
-          });
-          console.log('Response status:', response.status, "");
-          const data = await response.json();
-          // console.log('Response data:', data);
-          const [{ quality, link }] = data.links;
-          // Assuming the audio URL is available in the response data
-          const audioUrl = link;
-          const videoUrl=data.links[1].link;
-          console.log('TEST IF WE GO THROUGH THIS ENDPOINT AUDIO URL', audioUrl);
-          
-
-          let transcription = ''; // Add this line at the start of the try block
-
-          // If there's an audio URL, handle transcription with retry logic
-          if (audioUrl) {
-            let retryCount = 0;
-            const maxRetries = 3;
-            const baseDelay = 1000;
-
-            const openaiApiKey = process.env.OPENAI_API_KEY;
-            if (openaiApiKey) {
-              while (retryCount < maxRetries) {
-                try {
-                  // Download the audio file first
-                  const audioResponse = await fetch(audioUrl);
-                  const audioBuffer = await audioResponse.arrayBuffer();
-                  const audioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
-
-                  // Use the browser's FormData
-                  const formData = new globalThis.FormData();
-                  formData.append('file', audioBlob, 'audio.mp3');
-                  formData.append('model', 'whisper-1');
-
-                  const transcriptionResponse = await axios.post(
-                    'https://api.openai.com/v1/audio/transcriptions',
-                    formData,
-                    {
-                      headers: {
-                        'Authorization': `Bearer ${openaiApiKey}`,
-                        'Content-Type': 'multipart/form-data',
-                      },
-                      maxBodyLength: Infinity,
-                      timeout: 30000
-                    }
-                  );
-
-                  console.log('Transcription successful');
-                  transcription = transcriptionResponse.data.text;
-                  break;
-                } catch (error) {
-                  console.error(`Transcription attempt ${retryCount + 1} failed:`, error);
-
-                  if (axios.isAxiosError(error) && error.response?.status === 429) {
-                    // Rate limit hit, wait and retry
-                    const delay = baseDelay * Math.pow(2, retryCount);
-                    console.log(`Rate limit hit, waiting ${delay}ms before retry...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    retryCount++;
-
-                    if (retryCount === maxRetries) {
-                      console.error('Max retries reached for transcription');
-                      // Continue without transcription
-                      break;
-                    }
-                  } else {
-                    // Other error, log and continue without transcription
-                    console.error('Transcription error:', error);
-                    break;
-                  }
-                }
-              }
-            } else {
-              console.error('OpenAI API key is not configured');
-            }
-          }
-
-          res.setHeader('Content-Type', 'application/json');
-          res.end(JSON.stringify({
-            ...data,
-            transcription: transcription,
-            videoUrl: videoUrl
-          }));
-        } catch (error) {
-          console.error('Error processing media:', error);
-          res.statusCode = 500;
-          res.end(JSON.stringify({ 
-            error: error instanceof Error ? error.message : 'Failed to process media',
-            details: error instanceof Error ? error.stack : undefined
-          }));
-        }
-      },  */
+      }
     }
   },
   plugins: [
@@ -443,7 +298,7 @@ export default defineConfig(({ mode }) => ({
         server.middlewares.use('/api/instagram/oembed', async (req, res) => {
           const url = new URL(req.url!, `http://${req.headers.host}`);
           const instagramUrl = url.searchParams.get('url');
-          console.log('\n=== Instagram API Request 2 ===');
+          console.log('\n=== Instagram API Request ===');
           console.log('URL:', instagramUrl);
           if (!instagramUrl) {
             res.statusCode = 400;
@@ -614,11 +469,7 @@ export default defineConfig(({ mode }) => ({
                 console.log('Session state saved');
               });
   
-              console.log('Starting login process...');
-              // Perform pre-login flow
               await ig.simulate.preLoginFlow();
-  
-              console.log('Attempting login...');
               const loggedInUser = await ig.account.login(process.env.INSTAGRAM_USERNAME!,
                 process.env.INSTAGRAM_PASSWORD!
               );
@@ -628,12 +479,7 @@ export default defineConfig(({ mode }) => ({
               console.log('Fetching media info for ID:', mediaId);
   
               const mediaInfo: any = await ig.media.info(mediaId);
-  
-              console.log('Media info are', mediaInfo)
-              console.log('VIDEO ARRAY', mediaInfo.items[0].video_versions[0]);
-
               videoUrl = mediaInfo.items[0].video_versions[0].url;
-              console.log("VIDEO URL IS: ", videoUrl);
 
             } catch (error) {
               console.error('Error with Instagram API:', error);
@@ -649,9 +495,54 @@ export default defineConfig(({ mode }) => ({
 
             let transcription = ''; // Add this line at the start of the try block
 
+            // If there's a video URL, handle transcription with retry logic
+            if (videoUrl) {
+              const response = await fetch(`http://localhost:8080/api/ai/transcribe?videoUrl=${encodeURIComponent(videoUrl)}`);
+              const data = await response.json();
+              transcription = data.transcription;
+            }
+
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+              ...data,
+              transcription: transcription,
+              videoUrl: videoUrl
+            }));
+          } catch (error) {
+            console.error('Error processing media:', error);
+            res.statusCode = 500;
+            res.end(JSON.stringify({ 
+              error: error instanceof Error ? error.message : 'Failed to process media',
+              details: error instanceof Error ? error.stack : undefined
+            }));
+          }
+        });
+        // Get video media from Instagram Private API
+        server.middlewares.use('/api/ai/transcribe', async (req, res) => {
+          const url = new URL(req.url!, `http://${req.headers.host}`);
+
+          try {
+            console.log('\n=== OPENAI TRANSCRIBE ===');
+            const videoUrl = url.searchParams.get('videoUrl');
+            let ig: IgApiClient | undefined;
+  
+            if (!videoUrl) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: 'Video URL is required' }));
+              return;
+            }
+            
+            // Assuming the audio URL is available in the response data
+            const audioUrl = "";
+            const data = {
+              videoUrl: videoUrl,
+              audioUrl: audioUrl
+            }
+
+            let transcription = ''; // Add this line at the start of the try block
+
             // If there's an video URL, handle transcription with retry logic
             if (videoUrl) {
-              console.log('WE GOT HERE ');
               let retryCount = 0;
               const maxRetries = 3;
               const baseDelay = 1000;
@@ -713,17 +604,15 @@ export default defineConfig(({ mode }) => ({
               }
             }
 
-            res.setHeader('Content-Type', 'application/json');
+
             res.end(JSON.stringify({
-              ...data,
-              transcription: transcription,
-              videoUrl: videoUrl
+              transcription: transcription
             }));
           } catch (error) {
-            console.error('Error processing media:', error);
+            console.error('Error transcribing media:', error);
             res.statusCode = 500;
             res.end(JSON.stringify({ 
-              error: error instanceof Error ? error.message : 'Failed to process media',
+              error: error instanceof Error ? error.message : 'Failed to transcribe',
               details: error instanceof Error ? error.stack : undefined
             }));
           }

@@ -41,8 +41,6 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
     const media = await getIGMediaFromURL(url)
     const videoData = await getVideoFromURL(url, media["media_id"]);
 
-    console.log('VIDEO DATA', videoData);
-
     const mediaData = {
       id: media["media_id"],
       caption: media["title"],
@@ -90,7 +88,6 @@ async function getVideoFromURL(url: string, mediaId: string): Promise<string | n
     }
     
     const data = await response.json();
-    console.log("Response from Video" + data);
     
     return data;
   ;
