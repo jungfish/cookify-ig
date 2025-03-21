@@ -12,6 +12,11 @@ const prisma = new PrismaClient();
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    emptyOutDir: true,
+  },
   server: {
     host: "localhost",
     port: 8080,
