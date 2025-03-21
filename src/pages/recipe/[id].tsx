@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getRecipeById } from '@/services/databaseService';
 import type { Recipe } from '@/types/recipe';
-import { UtensilsCrossed, ListOrdered, ScrollText, Clock } from 'lucide-react';
+import { UtensilsCrossed, ListOrdered, ScrollText, Clock, Instagram } from 'lucide-react';
 import ParallaxHero from '@/components/ParallaxHero';
 
 const RecipePage = () => {
@@ -78,12 +78,12 @@ const RecipePage = () => {
 
       {/* Main content */}
       <div className="container mx-auto p-4">
-        <div className="grid grid-cols-3 gap-6">
-          {/* Left column */}
-          <div className="col-span-2">
+        <div className={`grid ${recipe.videoUrl ? 'grid-cols-3 gap-6' : 'grid-cols-1'}`}>
+          {/* Left/Main column */}
+          <div className={recipe.videoUrl ? 'col-span-2' : 'col-span-1'}>
             {/* Serving size adjuster */}
             <div className="mb-4 p-4 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
-              <div className="flex items-center gap-4">
+              <div className={`flex items-center gap-4 ${!recipe.videoUrl ? 'justify-center' : ''}`}>
                 <span className="text-gray-700">Nombre de personnes:</span>
                 <button 
                   className="px-3 py-1 rounded-lg bg-gray-200 hover:bg-gray-300"
@@ -103,38 +103,40 @@ const RecipePage = () => {
               </div>
             </div>
 
-            {/* Timing information */}
-            <div className="mb-4 p-4 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
-              <div className="grid grid-cols-3 gap-4">
-                {recipe.prepTime && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-gray-600" />
-                    <div>
-                      <div className="text-sm text-gray-500">Préparation</div>
-                      <div className="font-medium">{recipe.prepTime}</div>
+            {/* Timing information - only show if we have any timing data */}
+            {(recipe.prepTime || recipe.cookTime || recipe.totalTime) && (
+              <div className="mb-4 p-4 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
+                <div className="grid grid-cols-3 gap-4">
+                  {recipe.prepTime && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <div className="text-sm text-gray-500">Préparation</div>
+                        <div className="font-medium">{recipe.prepTime}</div>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {recipe.cookTime && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-gray-600" />
-                    <div>
-                      <div className="text-sm text-gray-500">Cuisson</div>
-                      <div className="font-medium">{recipe.cookTime}</div>
+                  )}
+                  {recipe.cookTime && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <div className="text-sm text-gray-500">Cuisson</div>
+                        <div className="font-medium">{recipe.cookTime}</div>
+                      </div>
                     </div>
-                  </div>
-                )}
-                {recipe.totalTime && (
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-gray-600" />
-                    <div>
-                      <div className="text-sm text-gray-500">Temps total</div>
-                      <div className="font-medium">{recipe.totalTime}</div>
+                  )}
+                  {recipe.totalTime && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-5 h-5 text-gray-600" />
+                      <div>
+                        <div className="text-sm text-gray-500">Temps total</div>
+                        <div className="font-medium">{recipe.totalTime}</div>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Ingredients section with adjusted quantities */}
             <div className="mb-8 p-6 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
@@ -164,11 +166,11 @@ const RecipePage = () => {
             </div>
           </div>
 
-          {/* Right column */}
-          <div className="col-span-1">
-            <div className="sticky top-24 pt-4">
-              {recipe.videoUrl && (
-                <div className="aspect-[9/16] w-full max-w-[240px] mx-auto bg-white/70 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3">
+          {/* Right column - only render if there's a video */}
+          {recipe.videoUrl && (
+            <div className="col-span-1">
+              <div className="sticky top-24 pt-4">
+                <div className="aspect-[9/16] w-full max-w-[240px] mx-auto bg-white/70 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 p-3 mb-4">
                   <video
                     controls
                     className="w-full h-full rounded-lg"
@@ -176,9 +178,21 @@ const RecipePage = () => {
                     playsInline
                   />
                 </div>
-              )}
+                
+                {recipe.url && (
+                  <a 
+                    href={recipe.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full max-w-[240px] mx-auto flex items-center gap-2 p-3 bg-white/70 backdrop-blur-sm rounded-xl shadow-lg border border-white/20 text-gray-700 hover:bg-white/80 transition-colors"
+                  >
+                    <Instagram className="w-5 h-5 text-gray-800" />
+                    <span>Voir la recette originale</span>
+                  </a>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

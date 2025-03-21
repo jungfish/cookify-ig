@@ -3,8 +3,8 @@ import type { Recipe } from "@/types/recipe";
 import { saveRecipe } from './databaseService';
 
 export async function processRecipeFromInstagram(
-  caption: string, 
-  transcription: string, 
+  caption?: string, 
+  transcription?: string, 
   thumbnailUrl?: string, 
   videoUrl?: string,
   postUrl?: string

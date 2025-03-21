@@ -32,7 +32,7 @@ export async function interpretRecipe(caption: string, transcription: string): P
     - prepTime: Time it takes to prepare the recipe
     - cookTime: Time it takes to cook the recipe
     - totalTime: Total time it takes to prepare and cook the recipe
-    - servings: Number of people the recipe is for (default to 4 if not specified)
+    - servings: Number of people the recipe is for (default to 4 if not specified). It can only be a integer between 1 and 10.
     
     Only return the JSON object, no additional text.
     language: french

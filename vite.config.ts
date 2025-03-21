@@ -5,6 +5,8 @@ import { componentTagger } from "lovable-tagger";
 import axios from 'axios';
 import { IgApiClient } from 'instagram-private-api';
 import { PrismaClient } from '@prisma/client';
+import formidable from 'formidable';
+import fs from 'fs';
 
 const prisma = new PrismaClient();
 
@@ -618,6 +620,83 @@ export default defineConfig(({ mode }) => ({
             }));
           }
         });
+
+        // Get PHOTOS 
+        server.middlewares.use('/api/ocr', async (req, res) => {
+          if (req.method === 'POST') {
+            console.log('\n=== OPENAI VISION ===');
+            try {
+              const form = formidable({ multiples: true });
+              
+              form.parse(req, async (err, fields, files) => {
+                if (err) {
+                  console.error('Form parsing error:', err);
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: 'Failed to parse form data' }));
+                  return;
+                }
+
+                const fileArray = Array.isArray(files.images) ? files.images : [files.images];
+                
+                // Prepare content array for all images
+                const content = [
+                  {
+                    type: "text",
+                    text: "Extract and list all text from these recipe images, preserving the original French text."
+                  }
+                ];
+
+                // Add each image to the content array
+                for (const file of fileArray) {
+                  const fileBuffer = await fs.promises.readFile(file.filepath);
+                  const base64Image = fileBuffer.toString('base64');
+                  content.push({
+                    type: "image_url",
+                    image_url: {
+                      url: `data:${file.mimetype};base64,${base64Image}`
+                    }
+                  });
+                }
+
+                // Single API call with all images
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    model: "gpt-4o-mini",
+                    messages: [{
+                      role: "user",
+                      content: content
+                    }],
+                    max_tokens: 500
+                  })
+                });
+
+                const data = await response.json();
+                console.log('OpenAI API Response:', data);
+
+                if (!data.choices || !data.choices[0]?.message?.content) {
+                  console.error('Unexpected API response format:', data);
+                  if (data.error) {
+                    console.error('API Error:', data.error);
+                  }
+                  throw new Error('Invalid response from OpenAI API');
+                }
+
+                res.setHeader('Content-Type', 'application/json');
+                console.log('FULL TEXT', data.choices[0].message.content);
+                res.end(JSON.stringify({ transcription: data.choices[0].message.content }));
+              });
+            } catch (error) {
+              console.error('OCR error:', error);
+              res.statusCode = 500;
+              res.end(JSON.stringify({ error: 'Failed to process images' }));
+            }
+          }
+        });
       },
     },
   ].filter(Boolean),
@@ -628,57 +707,29 @@ export default defineConfig(({ mode }) => ({
   },
 }));
 
-
-/* GET MEDIA WITH IG PRIVATE API 
-  const url = new URL(req.url!, `http://${req.headers.host}`);
-          const mediaId = url.searchParams.get('mediaId');
-          let ig: IgApiClient | undefined;
-
-          if (!mediaId) {
-            res.statusCode = 400;
-            res.end(JSON.stringify({ error: 'Media ID is required' }));
-            return;
-          }
-
-          console.log('\n=== MEDIA API ===');
-          console.log('MEDIA ID:', mediaId);
-
-          try {
-            console.log('Initializing Instagram client...');
-            ig = new IgApiClient();
-
-            // Generate device ID before login
-            console.log("USEFRNAME", "matt__jung")
-            const deviceId = ig.state.generateDevice(process.env.INSTAGRAM_USERNAME!);
-
-            console.log('Generated device ID:', deviceId);
-
-            // Save session data
-            ig.request.end$.subscribe(async () => {
-              const serialized = await ig.state.serialize();
-              delete serialized.constants; // This deletes the problematic field
-              console.log('Session state saved');
-            });
-
-            console.log('Starting login process...');
-            // Perform pre-login flow
-            await ig.simulate.preLoginFlow();
-
-            console.log('Attempting login...');
-            const loggedInUser = await ig.account.login(process.env.INSTAGRAM_USERNAME!,
-              process.env.INSTAGRAM_PASSWORD!
-            );
-
-            console.log('Login successful for user:', loggedInUser.username);
-
-            console.log('Fetching media info for ID:', mediaId);
-
-            const mediaInfo: any = await ig.media.info(mediaId);
-
-            console.log('Media info are', mediaInfo)
-            // const videoUrl: string = mediaInfo.items[0].video_versions[0].url;
-            // Clean up
-            await ig.simulate.postLoginFlow();
-
-
-*/
+async function parseMultipartFormData(req: any): Promise<FormData> {
+  const form = formidable({ multiples: true });
+  
+  return new Promise((resolve, reject) => {
+    form.parse(req, async (err, fields, files) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+      
+      const formData = new FormData();
+      
+      // Handle files
+      if (files.images) {
+        const fileArray = Array.isArray(files.images) ? files.images : [files.images];
+        for (const file of fileArray) {
+          const fileBuffer = await fs.promises.readFile(file.filepath);
+          const blob = new Blob([fileBuffer], { type: file.mimetype });
+          formData.append('images', blob, file.originalFilename);
+        }
+      }
+      
+      resolve(formData);
+    });
+  });
+}
