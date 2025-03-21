@@ -1,39 +1,35 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Upload, Instagram } from "lucide-react";
 import { toast } from "sonner";
 import { processRecipeFromInstagram } from "@/services/recipeService";
 import { fetchInstagramPost } from "@/services/instagramService";
-import { Upload } from "lucide-react";
 
-interface URLInputProps {
-  onSubmit: (url: string) => void;
-  isLoading: boolean;
-}
-
-const URLInput = ({ onSubmit, isLoading }: URLInputProps) => {
-  const [url, setUrl] = useState("");
+const URLInput = () => {
   const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState<string>('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const processingSteps = {
+    EXTRACT: "Extraction du texte...",
+    TRANSCRIBE: "Transcription de la vidéo...",
+    ANALYZE: "Analyse de la recette...",
+    GENERATE: "Génération de l'illustration...",
+    SAVE: "Sauvegarde de la recette..."
+  };
+
+  const handleSubmit = async (url: string) => {
     setLoading(true);
     try {
-      // Check if URL contains either /reel/ or /p/ patterns from Instagram
+      setCurrentStep(processingSteps.EXTRACT);
       if (!url.includes("instagram.com/reel") && !url.includes("instagram.com/p/")) {
         toast.error("Please enter a valid Instagram URL");
         return;
       }
       
-      // First get the media info
       const mediaData = await fetchInstagramPost(url);
-      // Get the video URL from the response
+      setCurrentStep(processingSteps.TRANSCRIBE);
       const { videoUrl, transcription } = mediaData;
-      console.log("MEDIA DATA IS: ", mediaData);
-      debugger
 
-
-      // Then process the recipe with the video URL
+      setCurrentStep(processingSteps.ANALYZE);
       const recipe = await processRecipeFromInstagram(
         mediaData.caption || '',
         transcription || '',
@@ -42,89 +38,91 @@ const URLInput = ({ onSubmit, isLoading }: URLInputProps) => {
         mediaData.postUrl
       );
       
-      // Navigate to the recipe page
+      setCurrentStep(processingSteps.SAVE);
       window.location.href = `/recipe/${recipe.id}`;
     } catch (error) {
       console.error('Error processing URL:', error);
+      toast.error("Failed to process recipe");
     } finally {
       setLoading(false);
+      setCurrentStep('');
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files?.length) return;
-
+  const handleImageUpload = async (files: FileList) => {
     setLoading(true);
     try {
-      // Create FormData with images
+      setCurrentStep(processingSteps.EXTRACT);
       const formData = new FormData();
       Array.from(files).forEach((file) => {
         formData.append('images', file);
       });
 
-      // Send images for OCR
       const response = await fetch('/api/ocr', {
         method: 'POST',
         body: formData
       });
       
       const { transcription } = await response.json();
-      console.log('TRANSCRIPTION', transcription);
       
-      // Process recipe with transcription
-      const recipe = await processRecipeFromInstagram(
-        '', // No caption for uploaded images
-        transcription
-      );
-
-      // Navigate to recipe page
+      setCurrentStep(processingSteps.ANALYZE);
+      const recipe = await processRecipeFromInstagram('', transcription);
+      
+      setCurrentStep(processingSteps.SAVE);
       window.location.href = `/recipe/${recipe.id}`;
     } catch (error) {
       console.error('Error processing images:', error);
       toast.error("Failed to process images");
     } finally {
       setLoading(false);
+      setCurrentStep('');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto">
-      <div className="flex flex-col gap-4">
-        <div className="flex gap-2">
+    <div className="w-full max-w-2xl mx-auto text-center">
+      <div className="mb-12">
+        <img src="/logo.png" alt="Cookify" className="w-32 h-32 mx-auto mb-4" />
+        <h1 className="text-4xl font-bold text-gray-800 mb-2">Cookify</h1>
+        <p className="text-xl text-gray-600">Transformez vos recettes en un instant ✨</p>
+      </div>
+
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 border border-white/20">
+        <div className="relative">
           <input
             type="url"
-            placeholder="Paste your Instagram recipe URL here..."
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 px-4 py-3 rounded-lg bg-white/90 backdrop-blur border border-white/20 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-white/50"
+            placeholder="Collez le lien de votre recette Instagram ici..."
+            onChange={(e) => e.target.value && handleSubmit(e.target.value)}
+            className="w-full px-12 py-4 rounded-xl bg-white/90 border border-white/20 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
           />
-          <button
-            type="submit"
-            disabled={loading || !url}
-            className="px-6 py-3 bg-white text-gray-800 rounded-lg font-semibold hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? "Processing..." : "Generate Recipe"}
-          </button>
+          <Instagram className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
         </div>
 
-        {/* Image upload section */}
-        <div className="flex items-center justify-center w-full">
-          <label className="w-full flex flex-col items-center px-4 py-6 bg-white/90 text-gray-700 rounded-lg border border-white/20 cursor-pointer hover:bg-white/95">
-            <Upload className="w-8 h-8 mb-2" />
-            <span className="text-sm">Upload recipe photos</span>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageUpload}
-              disabled={loading}
-            />
-          </label>
-        </div>
+        <div className="mt-4 text-gray-500 font-medium">ou</div>
+
+        <label className="mt-4 block w-full px-12 py-4 rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors">
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+            disabled={loading}
+          />
+          <div className="flex items-center justify-center gap-2 text-gray-600">
+            <Upload className="w-5 h-5" />
+            <span>Importez vos photos de recette</span>
+          </div>
+        </label>
+
+        {loading && (
+          <div className="mt-4 flex items-center justify-center gap-3 text-gray-600">
+            <div className="w-5 h-5 border-2 border-orange-300 border-t-transparent rounded-full animate-spin" />
+            <span>{currentStep}</span>
+          </div>
+        )}
       </div>
-    </form>
+    </div>
   );
 };
 

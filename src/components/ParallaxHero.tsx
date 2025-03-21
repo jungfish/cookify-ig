@@ -27,21 +27,23 @@ const ParallaxHero = ({
   }, []);
 
   return (
-    <div className={`relative w-full ${height} overflow-hidden`}>
-      <div
-        className="absolute inset-0 w-full h-[120%] -top-10"
-        style={{
-          backgroundImage: `url("${imageUrl}")`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          transform: `translateY(${scrollPosition * 0.5}px)`,
-          willChange: 'transform'
-        }}
-      />
+    <div className={`relative w-full ${height} mb-16 overflow-hidden`}>
+      <div className="absolute inset-0 w-full h-[120%] -top-10">
+        <div
+          className="mx-auto max-w-7xl h-full"
+          style={{
+            backgroundImage: `url("${imageUrl}")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            transform: `translateY(${scrollPosition * 0.5}px)`,
+            willChange: 'transform'
+          }}
+        />
+      </div>
       {overlay && (
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
       )}
-      <div className="relative z-10 h-full flex flex-col justify-end items-center pb-8">
+      <div className="relative z-10 h-full flex flex-col justify-end items-center pb-12">
         <div className="bg-white/10 backdrop-blur-md px-8 py-4 rounded-2xl border border-white/20">
           <h1 className="text-4xl font-bold text-white text-center w-full max-w-4xl">
             {title}
