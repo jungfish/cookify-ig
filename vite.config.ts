@@ -132,6 +132,144 @@ export default defineConfig(({ mode }) => ({
     {
       name: 'setup-middleware',
       configureServer(server) {
+        // Password protection middleware
+        server.middlewares.use((req, res, next) => {
+          // Skip protection for static assets and API routes
+          if (req.url?.startsWith('/@') || 
+              req.url?.startsWith('/node_modules/') ||
+              req.url?.startsWith('/api/') ||
+              req.url?.endsWith('.js') ||
+              req.url?.endsWith('.css') ||
+              req.url?.endsWith('.ico')) {
+            return next();
+          }
+
+          // Check for auth cookie
+          const cookies = req.headers.cookie?.split(';').reduce((acc, cookie) => {
+            const [key, value] = cookie.trim().split('=');
+            acc[key] = value;
+            return acc;
+          }, {} as Record<string, string>) || {};
+
+          const isAuthenticated = cookies['auth'] === 'true';
+          const isLoginPage = req.url === '/login';
+
+          // Handle login page
+          if (isLoginPage) {
+            if (isAuthenticated) {
+              res.writeHead(302, { Location: '/' });
+              return res.end();
+            }
+
+            if (req.method === 'POST') {
+              let body = '';
+              req.on('data', chunk => {
+                body += chunk.toString();
+              });
+              
+              req.on('end', () => {
+                const formData = new URLSearchParams(body);
+                const password = formData.get('password');
+                
+                if (password === 'pouet') {
+                  res.writeHead(302, {
+                    'Set-Cookie': 'auth=true; HttpOnly; Path=/',
+                    'Location': '/'
+                  });
+                  return res.end();
+                }
+                
+                res.writeHead(302, { Location: '/login' });
+                return res.end();
+              });
+              return;
+            }
+
+            // Serve login page HTML
+            res.writeHead(200, { 'Content-Type': 'text/html' });
+            res.end(`
+              <!DOCTYPE html>
+              <html lang="en">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Cookify - Login</title>
+                  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+                  <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+                    body {
+                      font-family: 'Inter', sans-serif;
+                      background-color: #f3f4f6;
+                      min-height: 100vh;
+                    }
+                    .gradient-text {
+                      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+                      -webkit-background-clip: text;
+                      -webkit-text-fill-color: transparent;
+                    }
+                    .gradient-border {
+                      position: relative;
+                      border: double 2px transparent;
+                      border-radius: 0.75rem;
+                      background-image: linear-gradient(white, white), 
+                                      linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+                      background-origin: border-box;
+                      background-clip: padding-box, border-box;
+                    }
+                    .gradient-button {
+                      background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+                      transition: all 0.3s ease;
+                    }
+                    .gradient-button:hover {
+                      transform: translateY(-2px);
+                      box-shadow: 0 10px 20px -10px rgba(255, 107, 107, 0.5);
+                    }
+                  </style>
+                </head>
+                <body class="flex items-center justify-center p-4">
+                  <div class="gradient-border bg-white p-8 w-full max-w-md">
+                    <div class="text-center mb-8">
+                      <h1 class="text-4xl font-bold mb-2">
+                        <span class="gradient-text">Cookify</span>
+                      </h1>
+                      <p class="text-gray-600">Enter password to access your recipes</p>
+                    </div>
+                    
+                    <form method="POST" action="/login" class="space-y-6">
+                      <div>
+                        <div class="relative">
+                          <input
+                            type="password"
+                            name="password"
+                            required
+                            class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-400 transition-all"
+                            placeholder="Enter password"
+                          />
+                        </div>
+                      </div>
+                      
+                      <button
+                        type="submit"
+                        class="gradient-button w-full py-3 px-4 rounded-lg text-white font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-400"
+                      >
+                        Enter
+                      </button>
+                    </form>
+                  </div>
+                </body>
+              </html>
+            `);
+            return;
+          }
+
+          if (!isAuthenticated) {
+            res.writeHead(302, { Location: '/login' });
+            return res.end();
+          }
+
+          next();
+        });
+
         // Single recipe endpoint - using a more specific pattern
         server.middlewares.use(async (req, res, next) => {
           // Check if the URL matches our single recipe pattern
@@ -642,7 +780,7 @@ export default defineConfig(({ mode }) => ({
                 const content = [
                   {
                     type: "text",
-                    text: "Extract and list all text from these recipe images, preserving the original French text."
+                    text: "Extract and list all text from these recipe images, preserving the original text."
                   }
                 ];
 
@@ -676,7 +814,7 @@ export default defineConfig(({ mode }) => ({
                 });
 
                 const data = await response.json();
-                console.log('OpenAI API Response:', data);
+                console.log('DATA', data.choices);
 
                 if (!data.choices || !data.choices[0]?.message?.content) {
                   console.error('Unexpected API response format:', data);
