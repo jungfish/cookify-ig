@@ -80,7 +80,7 @@ async function getVideoFromURL(url: string, mediaId: string): Promise<string | n
   try {
     // Call our backend API endpoint to get media info
     // const response = await fetch(`/api/instagram/media?url=${url}`);
-    const response = await fetch(`/api/instagram-private/media?mediaId=${mediaId}`);
+    const response = await fetch(`/.netlify/functions/instagram-media?mediaId=${mediaId}`);
     
     if (!response.ok) {
       const errorText = await response.text();

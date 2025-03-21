@@ -1,13 +1,15 @@
-import { NextResponse } from 'next/server';
+import { Handler } from '@netlify/functions';
 import { IgApiClient } from 'instagram-private-api';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const mediaId = searchParams.get('mediaId');
+export const handler: Handler = async (event) => {
+  const mediaId = event.queryStringParameters?.mediaId;
   let ig: IgApiClient;
 
   if (!mediaId) {
-    return NextResponse.json({ error: 'Media ID is required' }, { status: 400 });
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Media ID is required' })
+    };
   }
 
   console.log('\n=== MEDIA API ===');
@@ -19,22 +21,28 @@ export async function GET(request: Request) {
     await ig.simulate.preLoginFlow();
     const auth = await ig.account.login(process.env.INSTAGRAM_USERNAME!, process.env.INSTAGRAM_PASSWORD!);
     
-    const mediaInfo: any = await ig.media.info(mediaId) // ig comes from "instagram-private-api"
+    const mediaInfo: any = await ig.media.info(mediaId);
     const videoUrl: string = mediaInfo.items[0].video_versions[0].url;
 
-    console.log("Media info are: "  + mediaInfo)
+    console.log("Media info are: ", mediaInfo);
     
     // Cleanup the session
     await ig.simulate.postLoginFlow();
     
-    return NextResponse.json({ videoUrl });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ videoUrl })
+    };
   } catch (error) {
     console.error('Error fetching from Instagram:', error);
-    return NextResponse.json({ error: 'Failed to fetch from Instagram' }, { status: 500 });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Failed to fetch from Instagram' })
+    };
   } finally {
     // Ensure we destroy the session
     if (ig) {
       await ig.destroy();
     }
   }
-} 
+}; 
