@@ -7,14 +7,12 @@ export async function processRecipeFromInstagram(
   transcription: string, 
   thumbnailUrl?: string, 
   videoUrl?: string,
-  prepTime?: string,
-  cookTime?: string,
-  totalTime?: string,
   postUrl?: string
 ): Promise<Recipe> {
   try {
     // Get recipe interpretation from Mistral
     const recipe = await interpretRecipe(caption, transcription);
+    console.log('RECIPE', recipe);
     
     // Generate custom illustration if no thumbnail provided
     const illustration = await generateRecipeImage(recipe.title, recipe.ingredients) || thumbnailUrl;

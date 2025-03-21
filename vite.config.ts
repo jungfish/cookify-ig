@@ -212,7 +212,11 @@ export default defineConfig(({ mode }) => ({
                     instructions: recipe.instructions ? JSON.stringify(recipe.instructions) : '[]',
                     illustration: recipe.illustration,
                     url: recipe.url,
-                    videoUrl: recipe.videoUrl
+                    videoUrl: recipe.videoUrl,
+                    prepTime: recipe.prepTime,
+                    cookTime: recipe.cookTime,
+                    totalTime: recipe.totalTime,
+                    servings: recipe.servings
                   };
 
                   if (existingRecipe && existingRecipe.id) {
@@ -307,7 +311,6 @@ export default defineConfig(({ mode }) => ({
           }
           try {
             const shortcode = instagramUrl.split('/p/')[1]?.split('/')[0];
-            console.log('Extracted shortcode:', shortcode);
             // Use the public oEmbed endpoint
             const apiUrl = `https://i.instagram.com/api/v1/oembed/?url=${encodeURIComponent(instagramUrl)}`;
             const response = await fetch(apiUrl, {
@@ -316,9 +319,7 @@ export default defineConfig(({ mode }) => ({
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
               }
             });
-            console.log('Response status:', response.status, "");
             const data = await response.json();
-            console.log('Response data:', data);
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({
               ...data          
