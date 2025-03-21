@@ -2,7 +2,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { getRecipeById } from '@/services/databaseService';
 import type { Recipe } from '@/types/recipe';
-import { UtensilsCrossed, ListOrdered, ScrollText } from 'lucide-react';
+import { UtensilsCrossed, ListOrdered, ScrollText, Clock } from 'lucide-react';
 import ParallaxHero from '@/components/ParallaxHero';
 
 const RecipePage = () => {
@@ -100,6 +100,39 @@ const RecipePage = () => {
                 >
                   +
                 </button>
+              </div>
+            </div>
+
+            {/* Timing information */}
+            <div className="mb-4 p-4 rounded-xl bg-white/70 backdrop-blur-sm border border-white/20 shadow-lg">
+              <div className="grid grid-cols-3 gap-4">
+                {recipe.prepTime && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <div className="text-sm text-gray-500">Préparation</div>
+                      <div className="font-medium">{recipe.prepTime}</div>
+                    </div>
+                  </div>
+                )}
+                {recipe.cookTime && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <div className="text-sm text-gray-500">Cuisson</div>
+                      <div className="font-medium">{recipe.cookTime}</div>
+                    </div>
+                  </div>
+                )}
+                {recipe.totalTime && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-gray-600" />
+                    <div>
+                      <div className="text-sm text-gray-500">Temps total</div>
+                      <div className="font-medium">{recipe.totalTime}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
