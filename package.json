@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -56,7 +56,6 @@
     "input-otp": "^1.2.4",
     "instagram-private-api": "^1.46.1",
     "lucide-react": "^0.462.0",
-    "next": "^15.2.2",
     "next-themes": "^0.3.0",
     "openai": "^4.87.3",
     "react": "^18.3.1",
@@ -75,7 +74,6 @@
   "devDependencies": {
     "@eslint/js": "^9.9.0",
     "@tailwindcss/typography": "^0.5.15",
-    "@types/next": "^8.0.7",
     "@types/node": "^22.5.5",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",

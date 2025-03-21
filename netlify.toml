@@ -10,6 +10,16 @@
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: *.netlify.app netlify.app *.instagram.com *.rapidapi.com *.openai.com fonts.googleapis.com fonts.gstatic.com cdn.jsdelivr.net;"
 
 [functions]
   directory = "functions" 
