@@ -39,14 +39,16 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
   try {
     // Get media from our backend API
     const media = await getIGMediaFromURL(url)
-    const videoData = await getVideoFromURL(url);
+    const videoData = await getVideoFromURL(url, media["media_id"]);
+
+    console.log('VIDEO DATA', videoData);
 
     const mediaData = {
       id: media["media_id"],
       caption: media["title"],
       transcription: videoData["transcription"],
-      videoUrl: videoData.links[1].link,
-      audioUrl: videoData.links[0].link,
+      videoUrl: videoData["videoUrl"],
+      audioUrl: "",
       thumbnailUrl: media["thumbnail_url"],
       postUrl: url,
     };
@@ -76,10 +78,11 @@ function extractShortcodeFromUrl(url: string): string | null {
   return null;
 }
 
-async function getVideoFromURL(url: string): Promise<string | null> {
+async function getVideoFromURL(url: string, mediaId: string): Promise<string | null> {
   try {
     // Call our backend API endpoint to get media info
-    const response = await fetch(`/api/instagram/media?url=${url}`);
+    // const response = await fetch(`/api/instagram/media?url=${url}`);
+    const response = await fetch(`/api/instagram-private/media?mediaId=${mediaId}`);
     
     if (!response.ok) {
       const errorText = await response.text();

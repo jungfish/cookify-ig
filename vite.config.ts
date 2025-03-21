@@ -125,7 +125,7 @@ export default defineConfig(({ mode }) => ({
       '/api/instagram/oembed': async (req, res) => {
         const url = new URL(req.url!, `http://${req.headers.host}`);
         const instagramUrl = url.searchParams.get('url');
-        console.log('\n=== Instagram API Request ===');
+        console.log('\n=== Instagram API Request 1 ===');
         console.log('URL:', instagramUrl);
         if (!instagramUrl) {
           res.statusCode = 400;
@@ -159,8 +159,11 @@ export default defineConfig(({ mode }) => ({
           }));
         }
       },
+      // TO DO ERASE THIS ENDPOINT
+      /*
       '/api/instagram/media': async (req, res) => {
         const url = new URL(req.url!, `http://${req.headers.host}`);
+        console.log("DO WE GET HERE? ", url);
 
         try {
           // Use the public oEmbed endpoint
@@ -263,7 +266,7 @@ export default defineConfig(({ mode }) => ({
             details: error instanceof Error ? error.stack : undefined
           }));
         }
-      },
+      },  */
     }
   },
   plugins: [
@@ -440,7 +443,7 @@ export default defineConfig(({ mode }) => ({
         server.middlewares.use('/api/instagram/oembed', async (req, res) => {
           const url = new URL(req.url!, `http://${req.headers.host}`);
           const instagramUrl = url.searchParams.get('url');
-          console.log('\n=== Instagram API Request ===');
+          console.log('\n=== Instagram API Request 2 ===');
           console.log('URL:', instagramUrl);
           if (!instagramUrl) {
             res.statusCode = 400;
@@ -475,7 +478,7 @@ export default defineConfig(({ mode }) => ({
           }
         });
 
-        // Modified media endpoint
+        // Get video media from Social Media Video Downloader API
         server.middlewares.use('/api/instagram/media', async (req, res) => {
           const url = new URL(req.url!, `http://${req.headers.host}`);
 
@@ -493,7 +496,7 @@ export default defineConfig(({ mode }) => ({
             });
             console.log('Response status:', response.status, "");
             const data = await response.json();
-            // console.log('Response data:', data);
+            console.log('Response data:', data);
             const [{ quality, link }] = data.links;
             // Assuming the audio URL is available in the response data
             const audioUrl = link;
@@ -518,6 +521,153 @@ export default defineConfig(({ mode }) => ({
                     // Use the browser's FormData
                     const formData = new globalThis.FormData();
                     formData.append('file', audioBlob, 'audio.mp3');
+                    formData.append('model', 'whisper-1');
+
+                    const transcriptionResponse = await axios.post(
+                      'https://api.openai.com/v1/audio/transcriptions',
+                      formData,
+                      {
+                        headers: {
+                          'Authorization': `Bearer ${openaiApiKey}`,
+                          'Content-Type': 'multipart/form-data',
+                        },
+                        maxBodyLength: Infinity,
+                        timeout: 30000
+                      }
+                    );
+
+                    console.log('Transcription successful');
+                    transcription = transcriptionResponse.data.text;
+                    break;
+                  } catch (error) {
+                    console.error(`Transcription attempt ${retryCount + 1} failed:`, error);
+
+                    if (axios.isAxiosError(error) && error.response?.status === 429) {
+                      // Rate limit hit, wait and retry
+                      const delay = baseDelay * Math.pow(2, retryCount);
+                      console.log(`Rate limit hit, waiting ${delay}ms before retry...`);
+                      await new Promise(resolve => setTimeout(resolve, delay));
+                      retryCount++;
+
+                      if (retryCount === maxRetries) {
+                        console.error('Max retries reached for transcription');
+                        // Continue without transcription
+                        break;
+                      }
+                    } else {
+                      // Other error, log and continue without transcription
+                      console.error('Transcription error:', error);
+                      break;
+                    }
+                  }
+                }
+              } else {
+                console.error('OpenAI API key is not configured');
+              }
+            }
+
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify({
+              ...data,
+              transcription: transcription,
+              videoUrl: videoUrl
+            }));
+          } catch (error) {
+            console.error('Error processing media:', error);
+            res.statusCode = 500;
+            res.end(JSON.stringify({ 
+              error: error instanceof Error ? error.message : 'Failed to process media',
+              details: error instanceof Error ? error.stack : undefined
+            }));
+          }
+        });
+
+        // Get video media from Instagram Private API
+        server.middlewares.use('/api/instagram-private/media', async (req, res) => {
+          const url = new URL(req.url!, `http://${req.headers.host}`);
+
+          try {
+            console.log('\n=== INSTAGRAM PRIVATE API ===');
+            const mediaId = url.searchParams.get('mediaId');
+            let videoUrl: string = "";
+            let ig: IgApiClient | undefined;
+  
+            if (!mediaId) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: 'Media ID is required' }));
+              return;
+            }
+  
+            try {
+              console.log('Initializing Instagram client...');
+              ig = new IgApiClient();
+  
+              // Generate device ID before login
+              const deviceId = ig.state.generateDevice(process.env.INSTAGRAM_USERNAME!);
+  
+              console.log('Generated device ID:', deviceId);
+  
+              // Save session data
+              ig.request.end$.subscribe(async () => {
+                const serialized = await ig.state.serialize();
+                delete serialized.constants; // This deletes the problematic field
+                console.log('Session state saved');
+              });
+  
+              console.log('Starting login process...');
+              // Perform pre-login flow
+              await ig.simulate.preLoginFlow();
+  
+              console.log('Attempting login...');
+              const loggedInUser = await ig.account.login(process.env.INSTAGRAM_USERNAME!,
+                process.env.INSTAGRAM_PASSWORD!
+              );
+  
+              console.log('Login successful for user:', loggedInUser.username);
+  
+              console.log('Fetching media info for ID:', mediaId);
+  
+              const mediaInfo: any = await ig.media.info(mediaId);
+  
+              console.log('Media info are', mediaInfo)
+              console.log('VIDEO ARRAY', mediaInfo.items[0].video_versions[0]);
+
+              videoUrl = mediaInfo.items[0].video_versions[0].url;
+              console.log("VIDEO URL IS: ", videoUrl);
+
+            } catch (error) {
+              console.error('Error with Instagram API:', error);
+              throw error;
+            }
+            
+            // Assuming the audio URL is available in the response data
+            const audioUrl = "";
+            const data = {
+              videoUrl: videoUrl,
+              audioUrl: audioUrl
+            }
+
+            let transcription = ''; // Add this line at the start of the try block
+
+            // If there's an video URL, handle transcription with retry logic
+            if (videoUrl) {
+              console.log('WE GOT HERE ');
+              let retryCount = 0;
+              const maxRetries = 3;
+              const baseDelay = 1000;
+
+              const openaiApiKey = process.env.OPENAI_API_KEY;
+              if (openaiApiKey) {
+                while (retryCount < maxRetries) {
+                  try {
+                    // Download the audio file first
+                    const audioResponse = await fetch(videoUrl);
+                    const audioBuffer = await audioResponse.arrayBuffer();
+                    const audioBlob = new Blob([audioBuffer], { type: 'video/mp4' });
+
+                    // Use the browser's FormData
+                    const formData = new globalThis.FormData();
+                    formData.append('file', audioBlob, 'video.mp4');  
                     formData.append('model', 'whisper-1');
 
                     const transcriptionResponse = await axios.post(

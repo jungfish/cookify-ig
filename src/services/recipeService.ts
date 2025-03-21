@@ -7,6 +7,9 @@ export async function processRecipeFromInstagram(
   transcription: string, 
   thumbnailUrl?: string, 
   videoUrl?: string,
+  prepTime?: string,
+  cookTime?: string,
+  totalTime?: string,
   postUrl?: string
 ): Promise<Recipe> {
   try {
@@ -25,6 +28,9 @@ export async function processRecipeFromInstagram(
       illustration,
       url: postUrl,
       videoUrl, // Add video URL from Instagram media endpoint
+      prepTime: recipe.prepTime,
+      cookTime: recipe.cookTime,
+      totalTime: recipe.totalTime,
       servings: recipe.servings || 4, // Default to 4 servings if not specified
     };
 

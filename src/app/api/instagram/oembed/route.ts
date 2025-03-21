@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const instagramUrl = searchParams.get('url');
 
-  console.log('\n=== Instagram API Request ===');
+  console.log('\n=== Instagram API Request 3===');
   console.log('URL:', instagramUrl);
 
   if (!instagramUrl) {

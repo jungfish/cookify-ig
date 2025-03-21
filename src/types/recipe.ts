@@ -8,6 +8,9 @@ export type Recipe = {
   url?: string;
   videoUrl?: string;
   servings: number;
+  prepTime?: string;
+  cookTime?: string;
+  totalTime?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }; 

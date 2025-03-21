@@ -15,6 +15,9 @@ export async function interpretRecipe(caption: string, transcription: string): P
   category: "Dessert" | "Soupe" | "Plat principal" | "Entrée" | "Bébé";
   ingredients: string[];
   instructions: string[];
+  prepTime: string;
+  cookTime: string;
+  totalTime: string;
   servings: number;
 }> {
   const prompt = `
@@ -26,6 +29,9 @@ export async function interpretRecipe(caption: string, transcription: string): P
     - category: Must be one of ["Dessert", "Soupe", "Plat principal", "Entrée", "Bébé"]
     - ingredients: An array of strings, each containing one ingredient with measurement
     - instructions: An array of strings, each containing one step
+    - prepTime: Time it takes to prepare the recipe
+    - cookTime: Time it takes to cook the recipe
+    - totalTime: Total time it takes to prepare and cook the recipe
     - servings: Number of people the recipe is for (default to 4 if not specified)
     
     Only return the JSON object, no additional text.
@@ -33,8 +39,7 @@ export async function interpretRecipe(caption: string, transcription: string): P
   `;
 
   // Add logging to debug the AI response
-  console.log('Caption:', caption);
-  console.log('Transcription:', transcription);
+
   
   const response = await client.chat.complete({
     messages: [{ role: 'user', content: prompt }],
@@ -52,6 +57,9 @@ export async function interpretRecipe(caption: string, transcription: string): P
       category: parsed.category,
       ingredients: parsed.ingredients.map(String),
       instructions: parsed.instructions.map(String),
+      prepTime: parsed.prepTime,
+      cookTime: parsed.cookTime,
+      totalTime: parsed.totalTime,
       servings: parsed.servings || 4
     };
   } catch (error) {
