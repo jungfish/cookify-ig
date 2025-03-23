@@ -1,7 +1,4 @@
-import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { UtensilsCrossed } from "lucide-react";
 import type { Recipe } from "@/types/recipe";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 
@@ -9,13 +6,6 @@ interface RecipeCardProps {
   recipe: Recipe;
 }
 
-const categoryColors = {
-  Dessert: "bg-pink-100 text-pink-800",
-  Soupe: "bg-amber-100 text-amber-800",
-  "Plat principal": "bg-emerald-100 text-emerald-800",
-  Entrée: "bg-blue-100 text-blue-800",
-  Bébé: "bg-purple-100 text-purple-800",
-};
 
 const RecipeCard = ({ recipe }: RecipeCardProps) => {
   const ingredients = Array.isArray(recipe.ingredients) 
@@ -56,7 +46,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           <div>
             <h3 className="font-medium mb-2">Ingredients:</h3>
             <ul className="list-disc pl-5 space-y-1">
-              {ingredients.map((ingredient, index) => (
+              {ingredients.map((ingredient: string, index: number) => (
                 <li key={index}>{ingredient}</li>
               ))}
             </ul>
@@ -64,7 +54,7 @@ const RecipeCard = ({ recipe }: RecipeCardProps) => {
           <div>
             <h3 className="font-medium mb-2">Instructions:</h3>
             <ol className="list-decimal pl-5 space-y-1">
-              {instructions.map((instruction, index) => (
+              {instructions.map((instruction: string, index: number) => (
                 <li key={index}>{instruction}</li>
               ))}
             </ol>

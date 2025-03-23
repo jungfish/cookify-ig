@@ -26,16 +26,19 @@ const URLInput = () => {
       }
       
       const mediaData = await fetchInstagramPost(url);
+      if (!mediaData) {
+        throw new Error('Failed to fetch Instagram post');
+      }
+
       setCurrentStep(processingSteps.TRANSCRIBE);
-      const { videoUrl, transcription } = mediaData;
 
       setCurrentStep(processingSteps.ANALYZE);
       const recipe = await processRecipeFromInstagram(
         mediaData.caption || '',
-        transcription || '',
-        mediaData.thumbnailUrl,
-        videoUrl,
-        mediaData.postUrl
+        mediaData.transcription || '',
+        mediaData.thumbnailUrl || '',
+        mediaData.videoUrl,
+        mediaData.postUrl || ''
       );
       
       setCurrentStep(processingSteps.SAVE);
@@ -53,20 +56,32 @@ const URLInput = () => {
     setLoading(true);
     try {
       setCurrentStep(processingSteps.EXTRACT);
+      console.log('Starting image upload, files:', files.length);
+      
       const formData = new FormData();
       Array.from(files).forEach((file) => {
-        formData.append('images', file);
+        console.log('Appending file:', file.name);
+        formData.append('image', file);
       });
 
-      const response = await fetch('/api/ocr', {
+      console.log('Sending request to /api/ai/ocr');
+      const response = await fetch('/api/ai/ocr', {
         method: 'POST',
         body: formData
       });
       
-      const { transcription } = await response.json();
+      console.log('Response status:', response.status);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+      }
+      
+      const data = await response.json();
+      console.log('Response data:', data);
       
       setCurrentStep(processingSteps.ANALYZE);
-      const recipe = await processRecipeFromInstagram('', transcription);
+      const recipe = await processRecipeFromInstagram('', data.text);
       
       setCurrentStep(processingSteps.SAVE);
       window.location.href = `/recipe/${recipe.id}`;

@@ -50,7 +50,7 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
   try {
     // Get media from our backend API
     const media = await getIGMediaFromURL(url)
-    const videoData = await getVideoFromURL(url, media["media_id"]);
+    const videoData = await getVideoFromURL(media["media_id"]);
 
     const mediaData = {
       id: media["media_id"],
@@ -71,23 +71,7 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
   }
 }
 
-function extractShortcodeFromUrl(url: string): string | null {
-  // Extract the shortcode from Instagram URLs
-  // Examples: 
-  // https://www.instagram.com/p/CpAbCdEfGhI/
-  // https://www.instagram.com/reel/CpAbCdEfGhI/
-  
-  const regex = /instagram\.com\/(p|reel)\/([A-Za-z0-9_-]+)/;
-  const match = url.match(regex);
-  
-  if (match && match[2]) {
-    return match[2];
-  }
-  
-  return null;
-}
-
-async function getVideoFromURL(url: string, mediaId: string): Promise<VideoData | null> {
+async function getVideoFromURL(mediaId: string): Promise<VideoData | null> {
   try {
     // Call our backend API endpoint to get media info
     // const response = await fetch(`/api/instagram/media?url=${url}`);

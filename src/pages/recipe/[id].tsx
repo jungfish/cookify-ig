@@ -1,8 +1,7 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { getRecipeById } from '@/services/databaseService';
 import type { Recipe } from '@/types/recipe';
-import { UtensilsCrossed, ListOrdered, ScrollText, Clock, Instagram } from 'lucide-react';
+import { UtensilsCrossed, ListOrdered,  Clock, Instagram } from 'lucide-react';
 import ParallaxHero from '@/components/ParallaxHero';
 
 const RecipePage = () => {

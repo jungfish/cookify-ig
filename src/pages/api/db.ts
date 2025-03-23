@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
-export async function GET(request: Request) {
+export async function GET(_request: Request) {
   try {
     const recipes = await prisma.recipe.findMany()
     return new Response(JSON.stringify(recipes), {
