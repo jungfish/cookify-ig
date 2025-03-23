@@ -10,7 +10,18 @@ export interface InstagramMedia {
   postUrl?: string;
 }
 
-async function getIGMediaFromURL(url: string): Promise<JSON> {
+interface InstagramAPIResponse {
+  media_id: string;
+  title: string;
+  thumbnail_url: string;
+}
+
+interface VideoData {
+  transcription: string;
+  videoUrl: string;
+}
+
+async function getIGMediaFromURL(url: string): Promise<InstagramAPIResponse> {
   try {
     // Use a server endpoint to proxy the Instagram API request
     const response = await fetch(`/api/instagram/oembed?url=${encodeURIComponent(url)}`);
@@ -28,7 +39,7 @@ async function getIGMediaFromURL(url: string): Promise<JSON> {
       throw new Error('No media ID found in response');
     }
     
-    return data;
+    return data as InstagramAPIResponse;
   } catch (error) {
     console.error('Error fetching media ID:', error);
     throw error;
@@ -44,8 +55,8 @@ export async function fetchInstagramPost(url: string): Promise<InstagramMedia | 
     const mediaData = {
       id: media["media_id"],
       caption: media["title"],
-      transcription: videoData["transcription"],
-      videoUrl: videoData["videoUrl"],
+      transcription: videoData?.transcription,
+      videoUrl: videoData?.videoUrl,
       audioUrl: "",
       thumbnailUrl: media["thumbnail_url"],
       postUrl: url,
@@ -76,11 +87,11 @@ function extractShortcodeFromUrl(url: string): string | null {
   return null;
 }
 
-async function getVideoFromURL(url: string, mediaId: string): Promise<string | null> {
+async function getVideoFromURL(url: string, mediaId: string): Promise<VideoData | null> {
   try {
     // Call our backend API endpoint to get media info
     // const response = await fetch(`/api/instagram/media?url=${url}`);
-    const response = await fetch(`/.netlify/functions/instagram-media?mediaId=${mediaId}`);
+    const response = await fetch(`/api/instagram-private/media?mediaId=${mediaId}`);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -90,7 +101,6 @@ async function getVideoFromURL(url: string, mediaId: string): Promise<string | n
     const data = await response.json();
     
     return data;
-  ;
   } catch (error) {
     console.error('Error fetching media from ID:', error);
     toast.error("Failed to fetch Instagram media");

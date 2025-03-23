@@ -19,117 +19,7 @@ export default defineConfig(({ mode }) => ({
   },
   server: {
     host: "localhost",
-    port: 8080,
-    middlewares: {
-      '/api/db': async (req, res) => {
-        if (req.method === 'POST') {
-          try {
-            let body = '';
-            req.on('data', chunk => {
-              body += chunk.toString();
-            });
-            
-            req.on('end', async () => {
-              try {
-                const recipe = JSON.parse(body);
-                console.log('Received recipe:', recipe);
-                
-                // Validate required fields
-                if (!recipe.title || !recipe.category) {
-                  res.statusCode = 400;
-                  res.end(JSON.stringify({ 
-                    error: 'Missing required fields: title and category are required' 
-                  }));
-                  return;
-                }
-
-                // Check if recipe exists by URL if provided
-                let savedRecipe;
-                const recipeData = {
-                  title: recipe.title,
-                  category: recipe.category,
-                  ingredients: recipe.ingredients ? JSON.stringify(recipe.ingredients) : '[]',
-                  instructions: recipe.instructions ? JSON.stringify(recipe.instructions) : '[]',
-                  illustration: recipe.illustration,
-                  url: recipe.url
-                };
-
-                if (recipe.url) {
-                  const existingRecipe = await prisma.recipe.findFirst({
-                    where: { url: recipe.url }
-                  });
-
-                  if (existingRecipe) {
-                    savedRecipe = await prisma.recipe.update({
-                      where: { id: existingRecipe.id },
-                      data: recipeData,
-                    });
-                  }
-                }
-
-                if (!savedRecipe) {
-                  savedRecipe = await prisma.recipe.create({
-                    data: recipeData,
-                  });
-                }
-
-                res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify(savedRecipe));
-              } catch (error) {
-                console.error('Error saving recipe:', error);
-                res.statusCode = 500;
-                res.end(JSON.stringify({ error: 'Failed to save recipe' }));
-              }
-            });
-          } catch (error) {
-            console.error('Error processing request:', error);
-            res.statusCode = 500;
-            res.end(JSON.stringify({ error: 'Failed to process request' }));
-          }
-        } else if (req.method === 'PUT') {
-          try {
-            const body = await new Promise<string>((resolve) => {
-              let data = '';
-              req.on('data', chunk => { data += chunk; });
-              req.on('end', () => resolve(data));
-            });
-            
-            const recipe = JSON.parse(body);
-            
-            const updatedRecipe = await prisma.recipe.update({
-              where: { id: recipe.id },
-              data: {
-                title: recipe.title,
-                category: recipe.category,
-                ingredients: recipe.ingredients,
-                instructions: recipe.instructions,
-                illustration: recipe.illustration,
-                url: recipe.url,
-              },
-            });
-
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(updatedRecipe));
-          } catch (error) {
-            console.error('Error updating recipe:', error);
-            res.statusCode = 500;
-            res.end(JSON.stringify({ error: 'Failed to update recipe' }));
-          }
-        } else if (req.method === 'GET') {
-          try {
-            const recipes = await prisma.recipe.findMany({
-              orderBy: { createdAt: 'desc' }
-            });
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(recipes));
-          } catch (error) {
-            console.error('Database error:', error);
-            res.statusCode = 500;
-            res.end(JSON.stringify({ error: 'Failed to fetch recipes' }));
-          }
-        }
-      }
-    }
+    port: 8080 
   },
   plugins: [
     react(),
@@ -325,7 +215,7 @@ export default defineConfig(({ mode }) => ({
               
               req.on('end', async () => {
                 const recipe = JSON.parse(body);
-                console.log('Received recipe:', recipe);
+                console.log('Received recipe 2:', recipe);
                 
                 // Validate required fields
                 if (!recipe.title || !recipe.category) {
@@ -465,6 +355,7 @@ export default defineConfig(({ mode }) => ({
               }
             });
             const data = await response.json();
+            console.log("response success", response.status)
             res.setHeader('Content-Type', 'application/json');
             res.end(JSON.stringify({
               ...data          

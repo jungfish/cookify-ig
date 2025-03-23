@@ -11,9 +11,9 @@ export async function processRecipeFromInstagram(
 ): Promise<Recipe> {
   try {
     // Get recipe interpretation from Mistral
-    const recipe = await interpretRecipe(caption, transcription);
+    const recipe = await interpretRecipe(caption || '', transcription || '');
     console.log('RECIPE', recipe);
-    
+    debugger;
     // Generate custom illustration if no thumbnail provided
     const illustration = await generateRecipeImage(recipe.title, recipe.ingredients) || thumbnailUrl;
     
@@ -32,7 +32,6 @@ export async function processRecipeFromInstagram(
       servings: recipe.servings || 4, // Default to 4 servings if not specified
     };
 
-    console.log("PROCESSED RECIPE IS: ", processedRecipe);
 
     // Save the recipe to the database
     const savedRecipe = await saveRecipe(processedRecipe);

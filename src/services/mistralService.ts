@@ -6,7 +6,7 @@ const client = new Mistral({
 });
 
 const openai = new OpenAI({
-  apiKey: "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",
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true
 });
 
@@ -48,8 +48,14 @@ export async function interpretRecipe(caption: string, transcription: string): P
   });
 
   try {
+    if (!response.choices?.length) {
+      throw new Error('No response from Mistral AI');
+    }
     const content = response.choices[0].message.content;
-    console.log('Mistral response:', content); // Add this log
+    if (!content) {
+      throw new Error('Empty response from Mistral AI');
+    }
+    console.log('Mistral response:', content);
     const parsed = JSON.parse(typeof content === 'string' ? content : content.join(''));
     
     return {
@@ -71,6 +77,7 @@ export async function interpretRecipe(caption: string, transcription: string): P
 // Add new function for image generation
 export async function generateRecipeImage(title: string, ingredients: string[]): Promise<string> {
   try {
+    console.log('\n=== OPENAI VISION ===');
     const prompt = `A minimalistic abstract watercolor drawing of ${title}, The composition is soft and warm, inspired by recipe book illustrations. The dish is depicted in a delicate, airy watercolor style with gentle brushstrokes. The main ingredients are the following: ${ingredients.slice(0,8).join(', ')}. They are arranged artistically in a bowl or a plate, with steam subtly rising. The color palette is earthy and inviting, featuring golden tones, deep greens for vegetables and herbs, and soft browns. The background is light and textured, enhancing the organic feel. Soft natural lighting creates depth while keeping the overall aesthetic clean and modern. No text included. Composition should be wide and horizontal to fit as a banner image.`;
     
     console.log("Prompt is: ", prompt);
@@ -85,7 +92,7 @@ export async function generateRecipeImage(title: string, ingredients: string[]):
 
 
     console.log('Generated image URL:', response.data[0].url);
-    return response.data[0].url;
+    return response.data[0].url ?? `https://source.unsplash.com/featured/?${encodeURIComponent(title)},food`;
   } catch (error) {
     console.error('Error generating recipe image with DALL-E:', error);
     // Fallback to Unsplash if DALL-E fails
