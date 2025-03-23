@@ -1,6 +1,6 @@
 import { Router, RequestHandler } from 'express';
-import formidable from 'formidable';
-import fs from 'fs';
+import { IncomingForm } from 'formidable';
+import * as fs from 'fs';
 import OpenAI from 'openai';
 import fetch from 'node-fetch';
 
@@ -39,14 +39,14 @@ const transcribeVideo: RequestHandler = async (req, res) => {
 // Process images with OCR
 const performOCR: RequestHandler = async (req, res) => {
   console.log('OCR endpoint hit');
-  const form = formidable({
+  const form = new IncomingForm({
     multiples: true,
     keepExtensions: true,
   });
   
   try {
     console.log('Parsing form data...');
-    const [fields, files] = await form.parse(req);
+    const [_fields, files] = await form.parse(req);
     console.log('Files received:', files);
     
     const file = Array.isArray(files.image) ? files.image[0] : files.image;

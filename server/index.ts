@@ -1,7 +1,8 @@
-import express from 'express';
-import cookieParser from 'cookie-parser';
-import cors from 'cors';
-import path from 'path';
+import * as express from 'express';
+import { Express, Request, Response, NextFunction } from 'express';
+import * as cookieParser from 'cookie-parser';
+import * as cors from 'cors';
+import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { authMiddleware } from './middleware/auth';
@@ -14,7 +15,7 @@ const prisma = new PrismaClient();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const app = express();
+const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
@@ -26,7 +27,7 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../dist')));
 
 // Auth middleware for non-API routes
-app.use((req, res, next) => {
+app.use((req: Request, res: Response, next: NextFunction) => {
   if (req.path.startsWith('/api/') || 
       req.path.endsWith('.js') || 
       req.path.endsWith('.css') || 

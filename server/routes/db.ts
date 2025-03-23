@@ -5,7 +5,7 @@ const router = Router();
 const prisma = new PrismaClient();
 
 // Get all recipes
-const getAllRecipes: RequestHandler = async (req, res) => {
+const getAllRecipes: RequestHandler = async (_req, res) => {
   try {
     const recipes = await prisma.recipe.findMany({
       orderBy: { createdAt: 'desc' }
